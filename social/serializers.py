@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from social.models import Profile
+from social.models import Profile, Follow
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -27,3 +27,10 @@ class ProfileListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ("id", "full_name", "country", "city", "image")
+
+
+class FollowSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Follow
+        fields = ("id", "follower", "following", "created_at")
+        read_only_fields = ("id", "follower", "following", "created_at")
