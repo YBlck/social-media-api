@@ -1,3 +1,4 @@
+from django.core.serializers import get_serializer
 from django.db.models import Q
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -11,7 +12,9 @@ from social.serializers import (
     ProfileSerializer,
     ProfileCreateSerializer,
     ProfileListSerializer,
-    FollowSerializer,
+    FollowUnfollowSerializer,
+    FollowersSerializer,
+    FollowingSerializer,
 )
 
 
@@ -49,7 +52,11 @@ class ProfileViewSet(viewsets.ModelViewSet):
         if self.action == "list":
             return ProfileListSerializer
         if self.action in ["follow", "unfollow"]:
-            return FollowSerializer
+            return FollowUnfollowSerializer
+        if self.action == "followers":
+            return FollowersSerializer
+        if self.action == "following":
+            return FollowingSerializer
         return ProfileSerializer
 
     @action(
@@ -135,3 +142,19 @@ class ProfileViewSet(viewsets.ModelViewSet):
             {"message": f"You unfollow {profile_to_unfollow.full_name}"},
             status=status.HTTP_204_NO_CONTENT,
         )
+
+    @action(detail=True, methods=["GET"], permission_classes=[IsAuthenticated])
+    def followers(self, request, pk=None):
+        """List of all the user's followers"""
+        profile = self.get_object()
+        followers = profile.followers.select_related("follower__user")
+        serializer = self.get_serializer(followers, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["GET"], permission_classes=[IsAuthenticated])
+    def following(self, request, pk=None):
+        """List of all user subscriptions"""
+        profile = self.get_object()
+        following = profile.following.select_related("following__user")
+        serializer = self.get_serializer(following, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

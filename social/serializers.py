@@ -29,8 +29,24 @@ class ProfileListSerializer(serializers.ModelSerializer):
         fields = ("id", "full_name", "country", "city", "image")
 
 
-class FollowSerializer(serializers.ModelSerializer):
+class FollowUnfollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Follow
         fields = ("id", "follower", "following", "created_at")
         read_only_fields = ("id", "follower", "following", "created_at")
+
+
+class FollowersSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source="follower.full_name", read_only=True)
+
+    class Meta:
+        model = Follow
+        fields = ("id", "name")
+
+
+class FollowingSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source="following.full_name", read_only=True)
+
+    class Meta:
+        model = Follow
+        fields = ("id", "name")
