@@ -17,9 +17,9 @@ class Profile(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE
     )
-    bio = models.TextField(blank=True, null=True)
-    country = models.CharField(max_length=255, blank=True, null=True)
-    city = models.CharField(max_length=255, blank=True, null=True)
+    bio = models.TextField(blank=True)
+    country = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=255, blank=True)
     image = models.ImageField(
         upload_to=profile_image_file_path, null=True, blank=True
     )
