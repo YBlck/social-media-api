@@ -2,14 +2,16 @@ from django.db.models import Q
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from social.models import Profile
+from social.models import Profile, Follow
 from social.permissions import IsAdminOrOwnerOrReadOnly
 from social.serializers import (
     ProfileSerializer,
     ProfileCreateSerializer,
     ProfileListSerializer,
+    FollowSerializer,
 )
 
 
@@ -46,6 +48,8 @@ class ProfileViewSet(viewsets.ModelViewSet):
             return ProfileCreateSerializer
         if self.action == "list":
             return ProfileListSerializer
+        if self.action in ["follow", "unfollow"]:
+            return FollowSerializer
         return ProfileSerializer
 
     @action(
@@ -54,7 +58,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
         url_path="me",
     )
     def profile(self, request):
-        """Endpoint to get the authenticated user's profile"""
+        """Get the authenticated user's profile"""
         profile = get_object_or_404(Profile, user=request.user)
 
         if request.method == "GET":
@@ -70,3 +74,64 @@ class ProfileViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
 
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    @action(
+        detail=True, methods=["POST"], permission_classes=[IsAuthenticated]
+    )
+    def follow(self, request, pk=None):
+        """Start following a user"""
+        profile_to_follow = self.get_object()
+        user_to_follow = request.user.profile
+
+        subscription = Follow.objects.filter(
+            follower=user_to_follow, following=profile_to_follow
+        ).first()
+
+        if profile_to_follow == user_to_follow:
+            return Response(
+                {"message": "You can't follow yourself"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if subscription:
+            return Response(
+                {
+                    "message": f"You already follow {profile_to_follow.full_name}"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        Follow.objects.create(
+            follower=user_to_follow, following=profile_to_follow
+        )
+        return Response(
+            {"message": f"You following {profile_to_follow.full_name}"},
+            status=status.HTTP_201_CREATED,
+        )
+
+    @action(
+        detail=True, methods=["POST"], permission_classes=[IsAuthenticated]
+    )
+    def unfollow(self, request, pk=None):
+        """Stop following a user"""
+        profile_to_unfollow = self.get_object()
+        user_to_unfollow = request.user.profile
+
+        subscription = Follow.objects.filter(
+            follower=user_to_unfollow, following=profile_to_unfollow
+        ).first()
+
+        if not subscription:
+            return Response(
+                {
+                    "message": f"You don't follow {profile_to_unfollow.full_name}"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        subscription.delete()
+
+        return Response(
+            {"message": f"You unfollow {profile_to_unfollow.full_name}"},
+            status=status.HTTP_204_NO_CONTENT,
+        )
