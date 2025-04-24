@@ -4,9 +4,26 @@ from social.models import Profile, Follow
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    followers = serializers.IntegerField(
+        read_only=True, source="followers.count"
+    )
+    following = serializers.IntegerField(
+        read_only=True, source="following.count"
+    )
+
     class Meta:
         model = Profile
-        fields = ("id", "user", "full_name", "bio", "country", "city", "image")
+        fields = (
+            "id",
+            "user",
+            "full_name",
+            "bio",
+            "country",
+            "city",
+            "image",
+            "followers",
+            "following",
+        )
         read_only_fields = ("id", "user", "full_name")
 
 
