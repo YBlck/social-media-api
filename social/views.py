@@ -183,6 +183,27 @@ class PostViewSet(viewsets.ModelViewSet):
     serializer_class = PostSerializer
     permission_classes = (IsAdminOrOwnerOrReadOnly,)
 
+    def get_queryset(self):
+        queryset = self.queryset
+        queryset = self._apply_filters(queryset)
+
+        return queryset
+
+    def _apply_filters(self, queryset):
+        """Post filtering by hashtag or title"""
+        title = self.request.query_params.get("title")
+        hashtag = self.request.query_params.get("hashtag")
+
+        if title:
+            queryset = queryset.filter(title__icontains=title)
+
+        if hashtag:
+            if not hashtag.startswith("#"):
+                hashtag = f"#{hashtag}"
+            queryset = queryset.filter(content__icontains=hashtag)
+
+        return queryset
+
     def get_serializer_class(self):
         if self.action == "list":
             return PostListSerializer
@@ -204,7 +225,8 @@ class PostViewSet(viewsets.ModelViewSet):
         """List of all user's posts"""
         profile = get_object_or_404(Profile, user=request.user)
         posts = profile.posts.all()
-        serializer = self.get_serializer(posts, many=True)
+        filtered_posts = self._apply_filters(posts)
+        serializer = self.get_serializer(filtered_posts, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["GET"])
@@ -215,5 +237,6 @@ class PostViewSet(viewsets.ModelViewSet):
             "following", flat=True
         )
         posts = Post.objects.filter(profile__in=followed_profiles)
-        serializer = self.get_serializer(posts, many=True)
+        filtered_posts = self._apply_filters(posts)
+        serializer = self.get_serializer(filtered_posts, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
