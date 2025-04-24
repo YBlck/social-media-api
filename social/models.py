@@ -67,6 +67,11 @@ class Post(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def user(self):
+        """Get user for permissions"""
+        return self.profile.user
+
     class Meta:
         ordering = ("-created_at",)
 
