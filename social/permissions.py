@@ -12,5 +12,5 @@ class IsAdminOrOwnerOrReadOnly(BasePermission):
         if request.method in SAFE_METHODS:
             return True
         if request.method == "DELETE":
-            return request.user.is_staff
+            return request.user.is_staff or obj.user == request.user
         return obj.user == request.user
