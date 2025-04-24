@@ -47,3 +47,28 @@ class Follow(models.Model):
 
     def __str__(self):
         return f"{self.follower.full_name} follows {self.following.full_name}"
+
+
+def post_media_file_path(instance: "Post", filename: str) -> str:
+    _, extension = os.path.splitext(filename)
+    filename = f"{slugify(instance.title)}-{uuid.uuid4()}{extension}"
+
+    return os.path.join("uploads/posts/", filename)
+
+
+class Post(models.Model):
+    profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name="posts"
+    )
+    title = models.CharField(max_length=100)
+    content = models.TextField()
+    media = models.FileField(
+        upload_to=post_media_file_path, null=True, blank=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"{self.profile.full_name} - {self.title}"
