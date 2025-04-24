@@ -1,4 +1,6 @@
 from django.db.models import Q
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -63,6 +65,32 @@ class ProfileViewSet(viewsets.ModelViewSet):
             return FollowingSerializer
         return ProfileSerializer
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="name",
+                description="Filter profiles by user name or surname",
+                type=OpenApiTypes.STR,
+                required=False,
+            ),
+            OpenApiParameter(
+                name="country",
+                description="Filter profiles by country",
+                type=OpenApiTypes.STR,
+                required=False,
+            ),
+            OpenApiParameter(
+                name="city",
+                description="Filter profiles by city",
+                type=OpenApiTypes.STR,
+                required=False,
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        """Get list of all profiles"""
+        return super().list(request, *args, **kwargs)
+
     @action(
         detail=False,
         methods=["GET", "PUT", "PATCH"],
@@ -115,7 +143,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
             return Response(
                 {
                     "message": f"You already follow "
-                               f"{profile_to_follow.full_name}"
+                    f"{profile_to_follow.full_name}"
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -151,7 +179,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
             return Response(
                 {
                     "message": f"You don't follow "
-                               f"{profile_to_unfollow.full_name}"
+                    f"{profile_to_unfollow.full_name}"
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -222,6 +250,42 @@ class PostViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="title",
+                description="Filter posts by title",
+                type=OpenApiTypes.STR,
+                required=False,
+            ),
+            OpenApiParameter(
+                name="hashtag",
+                description="Filter posts by hashtag",
+                type=OpenApiTypes.STR,
+                required=False,
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        """Get list of all posts"""
+        return super().list(request, *args, **kwargs)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="title",
+                description="Filter posts by title",
+                type=OpenApiTypes.STR,
+                required=False,
+            ),
+            OpenApiParameter(
+                name="hashtag",
+                description="Filter posts by hashtag",
+                type=OpenApiTypes.STR,
+                required=False,
+            ),
+        ]
+    )
     @action(detail=False, methods=["GET"], url_path="me")
     def my_posts(self, request, pk=None):
         """List of all user's posts"""
@@ -231,6 +295,22 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(filtered_posts, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="title",
+                description="Filter posts by title",
+                type=OpenApiTypes.STR,
+                required=False,
+            ),
+            OpenApiParameter(
+                name="hashtag",
+                description="Filter posts by hashtag",
+                type=OpenApiTypes.STR,
+                required=False,
+            ),
+        ]
+    )
     @action(detail=False, methods=["GET"])
     def feed(self, request, pk=None):
         """List of posts of users to which the user is subscribed"""
