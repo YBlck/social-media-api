@@ -24,6 +24,8 @@ class PublicUserApiTests(TestCase):
         payload = {
             "email": "tes1t@test.com",
             "password": "testpass",
+            "first_name": "test_name",
+            "last_name": "test_last_name",
         }
 
         res = self.client.post(CREATE_USER_URL, payload)
@@ -65,6 +67,8 @@ class PrivateUserApiTests(TestCase):
         self.user = create_user(
             email="test@test.com",
             password="testpass",
+            first_name="test_name",
+            last_name="test_last_name",
         )
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
@@ -80,6 +84,8 @@ class PrivateUserApiTests(TestCase):
                 "id": self.user.id,
                 "email": self.user.email,
                 "is_staff": self.user.is_staff,
+                "first_name": self.user.first_name,
+                "last_name": self.user.last_name,
             },
         )
 
