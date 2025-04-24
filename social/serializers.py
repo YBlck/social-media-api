@@ -85,5 +85,5 @@ class PostListSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source="profile.full_name", read_only=True)
 
     class Meta:
-     model = Post
-     fields = ("id", "user", "title", "created_at")
+        model = Post
+        fields = ("id", "user", "title", "created_at")

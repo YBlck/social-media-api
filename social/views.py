@@ -114,7 +114,8 @@ class ProfileViewSet(viewsets.ModelViewSet):
         if subscription:
             return Response(
                 {
-                    "message": f"You already follow {profile_to_follow.full_name}"
+                    "message": f"You already follow "
+                               f"{profile_to_follow.full_name}"
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -149,7 +150,8 @@ class ProfileViewSet(viewsets.ModelViewSet):
         if not subscription:
             return Response(
                 {
-                    "message": f"You don't follow {profile_to_unfollow.full_name}"
+                    "message": f"You don't follow "
+                               f"{profile_to_unfollow.full_name}"
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
