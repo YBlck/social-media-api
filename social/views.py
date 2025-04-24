@@ -198,3 +198,22 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer.save(profile=profile)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=["GET"], url_path="me")
+    def my_posts(self, request, pk=None):
+        """List of all user's posts"""
+        profile = get_object_or_404(Profile, user=request.user)
+        posts = profile.posts.all()
+        serializer = self.get_serializer(posts, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["GET"])
+    def feed(self, request, pk=None):
+        """List of posts of users to which the user is subscribed"""
+        profile = get_object_or_404(Profile, user=request.user)
+        followed_profiles = profile.following.values_list(
+            "following", flat=True
+        )
+        posts = Post.objects.filter(profile__in=followed_profiles)
+        serializer = self.get_serializer(posts, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
